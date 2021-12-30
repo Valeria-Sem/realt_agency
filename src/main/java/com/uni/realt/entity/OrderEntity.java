@@ -5,24 +5,24 @@ import java.util.Objects;
 
 public class OrderEntity implements Serializable {
     private long id;
-    private long clientId;
-    private long operationId;
-    private long agentId;
+    private String client;
+    private String operation;
+    private String agent;
 
     public OrderEntity() {
     }
 
-    public OrderEntity(long clientId, long operationId, long agentId) {
-        this.clientId = clientId;
-        this.operationId = operationId;
-        this.agentId = agentId;
+    public OrderEntity(String client, String operation, String agent) {
+        this.client = client;
+        this.operation = operation;
+        this.agent = agent;
     }
 
-    public OrderEntity(long id, long clientId, long operationId, long agentId) {
+    public OrderEntity(long id, String client, String operation, String agent) {
         this.id = id;
-        this.clientId = clientId;
-        this.operationId = operationId;
-        this.agentId = agentId;
+        this.client = client;
+        this.operation = operation;
+        this.agent = agent;
     }
 
     public long getId() {
@@ -33,28 +33,28 @@ public class OrderEntity implements Serializable {
         this.id = id;
     }
 
-    public long getClientId() {
-        return clientId;
+    public String getClient() {
+        return client;
     }
 
-    public void setClientId(long clientId) {
-        this.clientId = clientId;
+    public void setClient(String client) {
+        this.client = client;
     }
 
-    public long getOperationId() {
-        return operationId;
+    public String getOperation() {
+        return operation;
     }
 
-    public void setOperationId(long operationId) {
-        this.operationId = operationId;
+    public void setOperation(String operation) {
+        this.operation = operation;
     }
 
-    public long getAgentId() {
-        return agentId;
+    public String getAgent() {
+        return agent;
     }
 
-    public void setAgentId(long agentId) {
-        this.agentId = agentId;
+    public void setAgent(String agent) {
+        this.agent = agent;
     }
 
     @Override
@@ -62,21 +62,21 @@ public class OrderEntity implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         OrderEntity that = (OrderEntity) o;
-        return id == that.id && clientId == that.clientId && operationId == that.operationId && agentId == that.agentId;
+        return id == that.id && client.equals(that.client) && operation.equals(that.operation) && agent.equals(that.agent);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, clientId, operationId, agentId);
+        return Objects.hash(id, client, operation, agent);
     }
 
     @Override
     public String toString() {
         return "OrderEntity{" +
                 "id=" + id +
-                ", clientId=" + clientId +
-                ", operationId=" + operationId +
-                ", agentId=" + agentId +
+                ", client='" + client + '\'' +
+                ", operation='" + operation + '\'' +
+                ", agent='" + agent + '\'' +
                 '}';
     }
 }

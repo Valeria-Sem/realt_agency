@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 
 public final class ConnectionPool {
-    private final static ConnectionPool pool = new ConnectionPool();
+//    private final static ConnectionPool pool = new ConnectionPool();
     private BlockingQueue<Connection> connectionQueue;
     private BlockingQueue<Connection> givenAwayConnQueue;
 
@@ -34,7 +34,7 @@ public final class ConnectionPool {
     }
 
     public static ConnectionPool getInstance() {
-        return pool;
+        return new ConnectionPool();
     }
 
     public void initPoolData() throws ConnectionPoolException {

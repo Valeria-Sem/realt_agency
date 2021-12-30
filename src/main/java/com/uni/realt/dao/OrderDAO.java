@@ -14,4 +14,8 @@ public interface OrderDAO {
     void updateOrder(OrderEntity order) throws DAOException;
 
     void delete(long id) throws DAOException;
+
+    List<OrderEntity> search(String part) throws DAOException;
+
+    List<OrderEntity> sort(String sort) throws DAOException;
 }

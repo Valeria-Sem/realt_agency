@@ -1,5 +1,12 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+
 <html>
+<head>
+    <title>Travel Agency</title>
+</head>
 <body>
-<h2>Hello World!</h2>
+<%
+    response.sendRedirect("controller?command=gotohomepage");
+%>
 </body>
 </html>

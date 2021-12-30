@@ -4,7 +4,6 @@ import com.uni.realt.dao.DAOException;
 import com.uni.realt.dao.OrderDAO;
 import com.uni.realt.dao.pool.ConnectionPool;
 import com.uni.realt.dao.pool.ConnectionPoolException;
-import com.uni.realt.entity.AgentEntity;
 import com.uni.realt.entity.OrderEntity;
 import org.apache.log4j.Logger;
 
@@ -18,16 +17,19 @@ import java.util.List;
 public class OrderDAOImpl implements OrderDAO {
     private final Logger LOGGER = Logger.getLogger(OrderDAOImpl.class);
 
-    private final String GET_ALL_QUERY = "select * from order";
-    private final String GET_BY_ID_QUERY = "select * from order where id = ";
-    private final String INSERT_QUERY = "insert into order (client_id, operation_id, agent_id) values(?, ?, ?) ";
-    private final String DELETE_QUERY = "delete from order where id = ";
-    private final String UPDATE_QUERY ="UPDATE order SET client_id = ?, operation_id = ?, agent_id = ? WHERE id = ?";
+    private final String GET_ALL_QUERY = "select * from `order`";
+    private final String SORT_QUERY = "select * from `order` order by ";
+    private final String GET_BY_ID_QUERY = "select * from `order` where id = ";
+    private final String SEARCH_QUERY  = "select * from `order` where client like CONCAT( '%',?,'%') " +
+            "or agent like CONCAT( '%',?,'%') or operation like CONCAT( '%',?,'%')";
+    private final String INSERT_QUERY = "insert into `order` (client, operation, agent) values(?, ?, ?) ";
+    private final String DELETE_QUERY = "delete from `order` where id = ";
+    private final String UPDATE_QUERY ="UPDATE `order` SET client = ?, operation = ?, agent = ? WHERE id = ?";
 
     private final String ID ="id";
-    private final String CLIENT_ID ="client_id";
-    private final String OPERATION_ID ="operation_id";
-    private final String AGENT_ID ="agent_id";
+    private final String CLIENT ="client";
+    private final String OPERATION ="operation";
+    private final String AGENT ="agent";
 
     @Override
     public void save(OrderEntity order) throws DAOException {
@@ -41,9 +43,9 @@ public class OrderDAOImpl implements OrderDAO {
 
             statement = connection.prepareStatement(INSERT_QUERY);
 
-            statement.setLong(1, order.getClientId());
-            statement.setLong(2, order.getOperationId());
-            statement.setLong(3, order.getAgentId());
+            statement.setString(1, order.getClient());
+            statement.setString(2, order.getOperation());
+            statement.setString(3, order.getAgent());
 
             statement.executeUpdate();
 
@@ -76,9 +78,9 @@ public class OrderDAOImpl implements OrderDAO {
             while (res.next()){
                 OrderEntity order = new OrderEntity();
                 order.setId(Long.parseLong(res.getString(ID)));
-                order.setClientId(Long.parseLong(res.getString(CLIENT_ID)));
-                order.setOperationId(Long.parseLong(res.getString(OPERATION_ID)));
-                order.setAgentId(Long.parseLong(res.getString(AGENT_ID)));
+                order.setClient(res.getString(CLIENT));
+                order.setOperation(res.getString(OPERATION));
+                order.setAgent(res.getString(AGENT));
 
                 orders.add(order);
             }
@@ -112,11 +114,11 @@ public class OrderDAOImpl implements OrderDAO {
 
             if (res.next()){
                 long orderId = res.getLong(ID);
-                long clientId = res.getLong(CLIENT_ID);
-                long operationId = res.getLong(OPERATION_ID);
-                long agentId = res.getLong(AGENT_ID);
+                String client = res.getString(CLIENT);
+                String operation = res.getString(OPERATION);
+                String agent = res.getString(AGENT);
 
-                order = new OrderEntity(orderId, clientId, operationId, agentId);
+                order = new OrderEntity(orderId, client, operation, agent);
             }
 
         } catch (SQLException | ConnectionPoolException e){
@@ -144,9 +146,9 @@ public class OrderDAOImpl implements OrderDAO {
 
             statement = connection.prepareStatement(UPDATE_QUERY);
 
-            statement.setLong(1, order.getClientId());
-            statement.setLong(2, order.getOperationId());
-            statement.setLong(3, order.getAgentId());
+            statement.setString(1, order.getClient());
+            statement.setString(2, order.getOperation());
+            statement.setString(3, order.getAgent());
             statement.setLong(4, order.getId());
 
             statement.executeUpdate();
@@ -183,5 +185,84 @@ public class OrderDAOImpl implements OrderDAO {
                 pool.closeConnection(connection, statement);
             }
         }
+    }
+
+    @Override
+    public List<OrderEntity> search(String part) throws DAOException {
+        List<OrderEntity> orders = new ArrayList<>();
+
+        Connection connection = null;
+        ConnectionPool pool = null;
+        PreparedStatement ps = null;
+        ResultSet res = null;
+
+        try{
+            pool = ConnectionPool.getInstance();
+            connection = pool.takeConnection();
+            ps = connection.prepareStatement(SEARCH_QUERY);
+
+            ps.setString(1, part);
+            ps.setString(2, part);
+            ps.setString(3, part);
+
+            res = ps.executeQuery();
+
+            while (res.next()){
+                OrderEntity order = new OrderEntity();
+                order.setId(Long.parseLong(res.getString(ID)));
+                order.setClient(res.getString(CLIENT));
+                order.setOperation(res.getString(OPERATION));
+                order.setAgent(res.getString(AGENT));
+
+                orders.add(order);
+            }
+        } catch (ConnectionPoolException | SQLException e){
+            LOGGER.error("Some problems with extracting orders: " + e.getLocalizedMessage());
+            throw new DAOException(e.getLocalizedMessage(), e);
+
+        } finally {
+            if(connection != null){
+                pool.closeConnection(connection, ps, res);
+            }
+        }
+
+        return orders;
+    }
+
+    @Override
+    public List<OrderEntity> sort(String sort) throws DAOException {
+        List<OrderEntity> orders = new ArrayList<>();
+
+        Connection connection = null;
+        ConnectionPool pool = null;
+        PreparedStatement ps = null;
+        ResultSet res = null;
+
+        try{
+            pool = ConnectionPool.getInstance();
+            connection = pool.takeConnection();
+            ps = connection.prepareStatement(SORT_QUERY + sort);
+            res = ps.executeQuery();
+
+            while (res.next()){
+                OrderEntity order = new OrderEntity();
+                order.setId(Long.parseLong(res.getString(ID)));
+                order.setClient(res.getString(CLIENT));
+                order.setOperation(res.getString(OPERATION));
+                order.setAgent(res.getString(AGENT));
+
+                orders.add(order);
+            }
+        } catch (ConnectionPoolException | SQLException e){
+            LOGGER.error("Some problems with extracting orders: " + e.getLocalizedMessage());
+            throw new DAOException(e.getLocalizedMessage(), e);
+
+        } finally {
+            if(connection != null){
+                pool.closeConnection(connection, ps, res);
+            }
+        }
+
+        return orders;
     }
 }
